@@ -16,7 +16,9 @@ app.get('/api/download', async (req, res) => {
     }
 
     try {
-        const apiRes = await fetch('https://co.vosh.lol/api/json', {
+        // Cobalt API alternative endpoint
+        const apiRes = require('https').request;
+        const fetchRes = await fetch('https://co.vosh.lol/api/json', {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
@@ -25,11 +27,13 @@ app.get('/api/download', async (req, res) => {
             },
             body: JSON.stringify({
                 url: videoUrl,
-                vQuality: '720'
+                vQuality: '720',
+                dubLang: false,
+                filenamePattern: 'classic'
             })
         });
 
-        const data = await apiRes.json();
+        const data = await fetchRes.json();
         let directLink = null;
 
         if (data) {
@@ -48,9 +52,10 @@ app.get('/api/download', async (req, res) => {
                 download_url: directLink
             });
         } else {
+            // Fallback response if primary extraction fails
             return res.json({
                 success: false,
-                error: "Could not extract link",
+                error: "Could not extract direct link. Try another video.",
                 details: data
             });
         }
