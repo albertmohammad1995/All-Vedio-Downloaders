@@ -5,19 +5,18 @@ const app = express();
 app.use(express.json());
 
 app.get('/', (req, res) => {
-    res.json({ status: true, message: "Downloader API is Running!" });
+    res.json({ status: true, message: "API is Running!" });
 });
 
 app.get('/api/download', async (req, res) => {
     const videoUrl = req.query.url;
-
     if (!videoUrl) {
         return res.status(400).json({ success: false, error: 'Missing URL parameter' });
     }
 
     let directLink = null;
 
-    // চেষ্টা ১: Cobalt API দিয়ে রিয়েল লিংক বের করা
+    // Cobalt ba onno free api diye try kora
     try {
         const response = await fetch('https://co.vosh.lol/api/json', {
             method: 'POST',
@@ -32,15 +31,18 @@ app.get('/api/download', async (req, res) => {
         }
     } catch (e) {}
 
-    // চেষ্টা ২: যদি Cobalt কাজ না করে, তবে মূল লিংকটিকেই ফলব্যাক হিসেবে রিটার্ন করা যাতে অ্যাপ ডিরেক্ট ক্যাচ করতে পারে
-    if (!directLink) {
-        directLink = videoUrl;
+    // Jodi API theke link na paoa jay, tobe faka ba bhul link pathaben na, ebong error return korbe jate 31B file name na
+    if (directLink) {
+        return res.json({
+            success: true,
+            download_url: directLink
+        });
+    } else {
+        return res.status(500).json({
+            success: false,
+            error: 'Failed to fetch direct video stream.'
+        });
     }
-
-    return res.json({
-        success: true,
-        download_url: directLink
-    });
 });
 
 module.exports = app;
